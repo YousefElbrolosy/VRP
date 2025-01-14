@@ -171,7 +171,7 @@ class VRPQAOA:
 
         optimizer = qml.GradientDescentOptimizer()
         steps = n_iterations
-        params = np.array([[0.5, 0.5], [0.5, 0.5]], requires_grad=True)
+        params = np.array([[0.5]*self.p]*2, requires_grad=True)
         for _ in range(steps):
             params = optimizer.step(self.cost_function_circuit, params)
         return params
@@ -217,11 +217,10 @@ class VRPQAOA:
 if __name__ == "__main__":
     # Distance matrix D1 from the problem
     D1 = np.array([
-        [0, 1, 2, 3, 4],
-        [1, 0, 2, 3, 4],
-        [2, 2, 0, 3, 4],
-        [3, 3, 3, 0, 4],
-        [4, 4, 4, 4, 0]
+        [0.00, 36.84, 5.06, 30.63],
+        [36.84, 0.00, 24.55, 63.22],
+        [5.06, 24.55, 0.00, 15.50],
+        [30.63, 63.22, 15.50, 0.00]
     ])
     vrp = VRPQAOA(4, 2, D1)
     params = vrp.optimize()
