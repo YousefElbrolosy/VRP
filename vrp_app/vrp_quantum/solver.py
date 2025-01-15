@@ -4,6 +4,7 @@ from pennylane import numpy as np
 import math
 from matplotlib import pyplot as plt
 import networkx as nx
+from scipy.optimize import minimize
 
 class VRPQAOA:
     def __init__(self, n, k, distance_matrix):
@@ -18,8 +19,9 @@ class VRPQAOA:
         self.num_of_qubits = n*(n-1)
         self.A = 2
         # Number of layers (precision)
-        self.p = 6
-        self.dev = qml.device("lightning.qubit", wires=self.num_of_qubits)
+        self.p = 2
+        self.wires = range(self.num_of_qubits)
+        self.dev = qml.device("default.qubit", wires=self.num_of_qubits)
 
 
     # Preparing the elementary variables    
@@ -190,7 +192,6 @@ class VRPQAOA:
 
     # Preparing the variables needed for the cost hamiltonian
 
-    # not sure if it is upper triangular matrix 
     def get_J_Matrix(self):
         """
         size: (n*(n-1)) By (n*(n-1))
@@ -335,10 +336,10 @@ class VRPQAOA:
         Args:
             params: list of parameters for the quantum circuit
         """
-        for w in self.num_of_qubits:
+        for w in range(self.num_of_qubits):
             qml.Hadamard(wires=w)
         qml.layer(self.qaoa_layer, self.p, params[0], params[1])
-    
+
 
     def cost_function_circuit(self, params):
         """
@@ -349,22 +350,34 @@ class VRPQAOA:
         def cost_function():
             self.circuit(params)
             return qml.expval(self.get_cost_hamiltonian())
-        return cost_function
+        
+        return cost_function()
     
     def optimize(self):
         """
         Args:
-            n_iterations: number of optimization iterations
+            n_iterations: number of optimization iterations (handled by COBYLA internally)
         Returns:
             params: optimized parameters for the quantum circuit
         """
+        # Initialize parameters
+        params = np.array([0.5] * (2 * self.p))
 
-        optimizer = qml.GradientDescentOptimizer()
-        steps = 100
-        params = np.array([[0.5]*self.p]*2, requires_grad=True)
-        for _ in range(steps):
-            params = optimizer.step(self.cost_function_circuit, params)
-        return params
+        # Define objective function for COBYLA
+        def objective_function(flat_params):
+            reshaped_params = flat_params.reshape(2, self.p)
+            return self.cost_function_circuit(reshaped_params)
+
+        # Run COBYLA optimizer
+        result = minimize(
+            objective_function,
+            x0=params,
+            method="COBYLA"
+        )
+
+        # Reshape the optimized parameters back to the original shape
+        optimized_params = result.x.reshape(2, self.p)
+        return optimized_params
     
     def get_probability_distribution(self, params):
         """
@@ -374,10 +387,10 @@ class VRPQAOA:
             probability_distribution: the probability distribution of the solution
         """
         @qml.qnode(self.dev)
-        def probability_distribution(params):
+        def probability_distribution():
             self.circuit(params)
-            return qml.probs(wires=self.num_of_qubits)
-        return probability_distribution(params)
+            return qml.probs(wires=self.wires)
+        return probability_distribution()
     
     # used to visualize the solution 
     
@@ -414,10 +427,19 @@ if __name__ == "__main__":
     ])
     vrp = VRPQAOA(4, 2, D1)
     params = vrp.optimize()
-    # probability_distribution = vrp.get_probability_distribution(params)
-    # plt.bar(range(2 ** len(vrp.num_of_qubits)), probability_distribution)
-    # plt.show()  
-    # print(probability_distribution)
+    probability_distribution = vrp.get_probability_distribution(params)
+    # Create the plot using matplotlib
+    plt.figure(figsize=(15, 6))
+    plt.plot(range(len(probability_distribution)), probability_distribution, 
+            color='green', linewidth=1, drawstyle='steps-post')
+    plt.grid(True, alpha=0.3)
+    plt.xlabel('State Index')
+    plt.ylabel('Probability')
+    plt.ylim(0, max(probability_distribution) * 1.1)  # Add 10% padding to y-axis
+    plt.show()
+
+    # params = np.array([[0.5]*vrp.p]*2, requires_grad=True)
+    # print(vrp.cost_function_circuit(params))
     # print(vrp.get_x_vector())
     # print(vrp.get_z_source(0))
     # print(vrp.get_z_target(2))
