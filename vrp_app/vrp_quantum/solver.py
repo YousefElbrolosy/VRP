@@ -1,6 +1,7 @@
 import pennylane as qml
 from pennylane import qaoa
 from pennylane import numpy as np
+import math
 from matplotlib import pyplot as plt
 import networkx as nx
 
@@ -154,6 +155,7 @@ class VRPQAOA:
         c: constant offset
 
         """        
+        return (2*self.A*(self.n-1))+(2*self.A*math.pow(self.k, 2))
 
 
     # Preparing the variables needed for the cost hamiltonian
@@ -306,6 +308,7 @@ if __name__ == "__main__":
     print(vrp.get_z_target(2))
     print(vrp.get_w_vector())
     print(vrp.get_Q())
+    print(vrp.get_c())  
 
 
 
