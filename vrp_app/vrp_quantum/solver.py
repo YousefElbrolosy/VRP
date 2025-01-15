@@ -85,6 +85,8 @@ class VRPQAOA:
         
         return z_target
     
+
+    # assuming if distance matrix contains 0 in some places then the weight of that would be 0
     def get_w_vector(self):
         """
         uses: self.distance_matrix
@@ -93,15 +95,50 @@ class VRPQAOA:
 
         w_vector: vector of weights, representing the distance from node i to j
         """
+        w_vector = np.zeros(self.num_of_qubits)
 
+        # Fill the vector with the distances
+        for i in range(self.n):
+            for j in range(self.n):
+                if (i != j):
+                    index = i * (self.n - 1) + j if j < i else i * (self.n - 1) + j - 1
+                    w_vector[index] = self.distance_matrix[i][j]
+
+        return w_vector
+    
     def get_Q(self):
         """
+        Returns the quadratic coefficient matrix Q representing edge weights/interactions between nodes.
+        Q is calculated as A * sum(outer_product(z_s[i], z_s[i]) + outer_product(z_t[i], z_t[i]))
+        where z_s[i] and z_t[i] are the source and target vectors for node i.
+        
         Returns:
-    
-        Q: (the quadratic coefficient) which represents the edge
-        weight i.e., coupling or interaction between two nodes.
-
+            numpy.ndarray: A square matrix of size (n*(n-1)) x (n*(n-1))
         """
+        # Initialize Q matrix with zeros
+        Q = np.zeros((self.num_of_qubits, self.num_of_qubits))
+        
+        # Sum over all nodes (n-1 as per the formula)
+        for i in range(self.n - 1):
+            # Get z vectors for source and target
+            z_source = self.get_z_source(i)
+            z_target = self.get_z_target(i)
+            
+            # Calculate outer products
+            # Reshape vectors to column vectors for outer product
+            z_source_reshaped = z_source.reshape(-1, 1)
+            z_target_reshaped = z_target.reshape(-1, 1)
+            
+            # Add outer products to Q
+            Q += np.dot(z_source_reshaped, z_source_reshaped.T)
+            Q += np.dot(z_target_reshaped, z_target_reshaped.T)
+        
+        # Multiply by coefficient A
+        Q *= self.A
+        
+        return Q
+
+
     def get_g(self):
         """
         Returns:
@@ -267,6 +304,8 @@ if __name__ == "__main__":
     print(vrp.get_x_vector())
     print(vrp.get_z_source(0))
     print(vrp.get_z_target(2))
+    print(vrp.get_w_vector())
+    print(vrp.get_Q())
 
 
 
