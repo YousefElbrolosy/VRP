@@ -32,6 +32,18 @@ class VRPQAOA:
 
         x_vector: vector of binary decision variables representing the edges
         """
+        # The total number of possible edges in a directed graph with n nodes is n*(n-1).
+        x_vector = np.zeros(self.num_of_qubits)
+
+        # Fill the vector with placeholders for the binary variables
+        # Placeholder: Each x_ij corresponds to an index in the vector
+        for i in range(self.n):
+            for j in range(self.n):
+                if (i != j and self.distance_matrix[i][j]!=0):  # Avoid self-loops (i.e., no edges from a node to itself)
+                    index = i * (self.n - 1) + j if j < i else i * (self.n - 1) + j - 1
+                    x_vector[index] = 1  # Assign a binary variable placeholder
+
+        return x_vector
     
     def get_z_source(self):
         """
@@ -220,14 +232,15 @@ if __name__ == "__main__":
         [0.00, 36.84, 5.06, 30.63],
         [36.84, 0.00, 24.55, 63.22],
         [5.06, 24.55, 0.00, 15.50],
-        [30.63, 63.22, 15.50, 0.00]
+        [0, 63.22, 15.50, 0.00]
     ])
     vrp = VRPQAOA(4, 2, D1)
-    params = vrp.optimize()
-    probability_distribution = vrp.get_probability_distribution(params)
-    plt.bar(range(2 ** len(vrp.num_of_qubits)), probability_distribution)
-    plt.show()  
-    print(probability_distribution)
+    # params = vrp.optimize()
+    # probability_distribution = vrp.get_probability_distribution(params)
+    # plt.bar(range(2 ** len(vrp.num_of_qubits)), probability_distribution)
+    # plt.show()  
+    # print(probability_distribution)
+    print(vrp.get_x_vector())
 
 
 
