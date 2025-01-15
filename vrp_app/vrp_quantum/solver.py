@@ -190,6 +190,7 @@ class VRPQAOA:
 
     # Preparing the variables needed for the cost hamiltonian
 
+    # not sure if it is upper triangular matrix 
     def get_J_Matrix(self):
         """
         size: (n*(n-1)) By (n*(n-1))
@@ -204,20 +205,60 @@ class VRPQAOA:
                     J[i][j] = -self.get_Q()[i][j]/4
         return J
 
+    # not sure about how summation rules translated correctly
     def get_h_vector(self):
         """
+        Implements h_i = g_i/2 + sum_j(Q_ij/4) + sum_j(Q_ji/4)
+        
         Returns:
-
-        h: vector of linear coefficients
-
+            numpy.ndarray: Vector of linear coefficients
         """
+        # Get necessary components
+        g = self.get_g()
+        Q = self.get_Q()
+        
+        # Initialize h vector
+        h = np.zeros(self.num_of_qubits)
+        
+        # Calculate h_i for each i
+        for i in range(self.num_of_qubits):
+            # First term: g_i/2
+            h[i] = g[i] / 2
+            
+            # Second term: sum_j(Q_ij/4)
+            h[i] += np.sum(Q[i, :]) / 4
+            
+            # Third term: sum_j(Q_ji/4)
+            h[i] += np.sum(Q[:, i]) / 4
+        
+        return h
+    
+    # not sure about how summation rules translated correctly
     def get_d_offset(self):
         """
+        Implements d = c + sum_i(g_i/2) + sum_i(Q_ii/4) + sum_i_j(Q_ij/4)
+        
         Returns:
-
-        d_offset: constant offset
-
+            float: Constant offset for the Hamiltonian
         """
+        # Get necessary components
+        c = self.get_c()
+        g = self.get_g()
+        Q = self.get_Q()
+        
+        # First term: c
+        d = c
+        
+        # Second term: sum_i(g_i/2)
+        d += np.sum(g) / 2
+        
+        # Third term: sum_i(Q_ii/4)
+        d += np.sum(np.diag(Q)) / 4
+        
+        # Fourth term: sum_i_j(Q_ij/4)
+        d += np.sum(Q) / 4
+        
+        return d
 
 
     # Preparing the cost hamiltonian
@@ -349,6 +390,8 @@ if __name__ == "__main__":
     print(vrp.get_helper_K())
     print(vrp.get_g())
     print(vrp.get_J_Matrix())
+    print(vrp.get_h_vector())
+    print(vrp.get_d_offset())
 
 
 
