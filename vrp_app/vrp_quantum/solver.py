@@ -45,21 +45,45 @@ class VRPQAOA:
 
         return x_vector
     
-    def get_z_source(self):
+
+    # this places a 1 even if there is no edge connecting between the nodes
+    def get_z_source(self, source_index):
         """
+        Args:
+            index: int, the index of the source node
         size: (n*(n-1)) By 1
         Returns:
 
         z_source: vector of binary decision variables representing the source node
         """
+        z_source = np.zeros(self.num_of_qubits)
+
+        # Fill the vector with placeholders for the binary variables
+        for i in range(self.n):
+            for j in range(self.n):
+                if (i == source_index and i != j):
+                    index = i * (self.n - 1) + j if j < i else i * (self.n - 1) + j - 1
+                    z_source[index] = 1  # Assign a binary variable placeholder
+        
+        return z_source
     
-    def get_z_target(self):
+    def get_z_target(self, target_index):
         """
         size: (n*(n-1)) By 1
         Returns:
 
         z_sink: vector of binary decision variables representing the sink/target node
         """
+        z_target = np.zeros(self.num_of_qubits)
+
+        # Fill the vector with placeholders for the binary variables
+        for i in range(self.n):
+            for j in range(self.n):
+                if (j == target_index and i != j):
+                    index = i * (self.n - 1) + j if j < i else i * (self.n - 1) + j - 1
+                    z_target[index] = 1  # Assign a binary variable placeholder
+        
+        return z_target
     
     def get_w_vector(self):
         """
@@ -232,7 +256,7 @@ if __name__ == "__main__":
         [0.00, 36.84, 5.06, 30.63],
         [36.84, 0.00, 24.55, 63.22],
         [5.06, 24.55, 0.00, 15.50],
-        [0, 63.22, 15.50, 0.00]
+        [30.63, 63.22, 15.50, 0.00]
     ])
     vrp = VRPQAOA(4, 2, D1)
     # params = vrp.optimize()
@@ -241,6 +265,8 @@ if __name__ == "__main__":
     # plt.show()  
     # print(probability_distribution)
     print(vrp.get_x_vector())
+    print(vrp.get_z_source(0))
+    print(vrp.get_z_target(2))
 
 
 
