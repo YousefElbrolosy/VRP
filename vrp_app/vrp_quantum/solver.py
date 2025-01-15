@@ -262,22 +262,60 @@ class VRPQAOA:
 
 
     # Preparing the cost hamiltonian
+
+    # not sure about omitting exclusion of 0 terms
     def get_cost_hamiltonian(self):
         """
+        Implements the cost Hamiltonian: H_cost = -sum_i sum_{j<i} J_ij sigma_i^z sigma_j^z - sum_i h_i sigma_i^z - d
+        This includes two-qubit ZZ interactions and single-qubit Z terms, plus a constant.
+        
         Returns:
-
-        cost_hamiltonian: the cost hamiltonian
-
+            qml.Hamiltonian: The cost Hamiltonian
         """
+        # Get necessary parameters
+        J = self.get_J_Matrix()
+        h = self.get_h_vector()
+        d = self.get_d_offset()
+        
+        coeffs = []
+        observables = []
+        
+        # Add two-qubit ZZ interaction terms
+        for i in range(self.num_of_qubits):
+            for j in range(i):  # j < i as per equation
+                coeffs.append(-J[i, j])  # Negative sign as per equation
+                observables.append(qml.PauliZ(wires=i) @ qml.PauliZ(wires=j))
+        
+        # Add single-qubit Z terms
+        for i in range(self.num_of_qubits):
+            coeffs.append(-h[i])  # Negative sign as per equation
+            observables.append(qml.PauliZ(wires=i))
+        
+        # Add constant offset term
+        coeffs.append(-d)  # Negative sign as per equation
+        observables.append(qml.Identity(0))  # Identity operator for constant term
+        
+        return qml.Hamiltonian(coeffs, observables)
 
     # Preparing the mixer hamiltonian
     def get_mixer_hamiltonian(self):
         """
+        Implements the mixer Hamiltonian: H_mixer = -sum_{i=0}^{n(n-1)-1} sigma_i^x
+        This is a sum of Pauli X operators on each qubit.
+        
         Returns:
-
-        mixer_hamiltonian: the mixer hamiltonian
-
+            qml.Hamiltonian: The mixer Hamiltonian
         """
+        # Create a list of coefficients and observables
+        coeffs = []
+        observables = []
+        
+        # Add Pauli X terms for each qubit
+        for i in range(self.num_of_qubits):
+            coeffs.append(-1.0)  # Negative coefficient as per equation
+            observables.append(qml.PauliX(wires=i))
+        
+        return qml.Hamiltonian(coeffs, observables)
 
     # Preparing the QAOA circuit
 
@@ -302,18 +340,18 @@ class VRPQAOA:
         qml.layer(self.qaoa_layer, self.p, params[0], params[1])
     
 
-    def cost_function_circuit(self):
+    def cost_function_circuit(self, params):
         """
         Returns:
             the cost of the circuit using the current parameters
         """
         @qml.qnode(self.dev)
-        def cost_function(params):
+        def cost_function():
             self.circuit(params)
             return qml.expval(self.get_cost_hamiltonian())
         return cost_function
     
-    def optimize(self, n_iterations=100):
+    def optimize(self):
         """
         Args:
             n_iterations: number of optimization iterations
@@ -322,7 +360,7 @@ class VRPQAOA:
         """
 
         optimizer = qml.GradientDescentOptimizer()
-        steps = n_iterations
+        steps = 100
         params = np.array([[0.5]*self.p]*2, requires_grad=True)
         for _ in range(steps):
             params = optimizer.step(self.cost_function_circuit, params)
@@ -375,23 +413,25 @@ if __name__ == "__main__":
         [30.63, 63.22, 15.50, 0.00]
     ])
     vrp = VRPQAOA(4, 2, D1)
-    # params = vrp.optimize()
+    params = vrp.optimize()
     # probability_distribution = vrp.get_probability_distribution(params)
     # plt.bar(range(2 ** len(vrp.num_of_qubits)), probability_distribution)
     # plt.show()  
     # print(probability_distribution)
-    print(vrp.get_x_vector())
-    print(vrp.get_z_source(0))
-    print(vrp.get_z_target(2))
-    print(vrp.get_w_vector())
-    print(vrp.get_Q())
-    print(vrp.get_c())  
-    print(vrp.get_helper_J())
-    print(vrp.get_helper_K())
-    print(vrp.get_g())
-    print(vrp.get_J_Matrix())
-    print(vrp.get_h_vector())
-    print(vrp.get_d_offset())
+    # print(vrp.get_x_vector())
+    # print(vrp.get_z_source(0))
+    # print(vrp.get_z_target(2))
+    # print(vrp.get_w_vector())
+    # print(vrp.get_Q())
+    # print(vrp.get_c())  
+    # print(vrp.get_helper_J())
+    # print(vrp.get_helper_K())
+    # print(vrp.get_g())
+    # print(vrp.get_J_Matrix())
+    # print(vrp.get_h_vector())
+    # print(vrp.get_d_offset())
+    # print(vrp.get_cost_hamiltonian())
+    # print(vrp.get_mixer_hamiltonian())
 
 
 
