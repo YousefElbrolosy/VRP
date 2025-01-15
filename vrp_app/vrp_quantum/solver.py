@@ -120,7 +120,7 @@ class VRPQAOA:
         Q = np.zeros((self.num_of_qubits, self.num_of_qubits))
         
         # Sum over all nodes (n-1 as per the formula)
-        for i in range(self.n - 1):
+        for i in range(self.n):
             # Get z vectors for source and target
             z_source = self.get_z_source(i)
             z_target = self.get_z_target(i)
@@ -139,7 +139,30 @@ class VRPQAOA:
         
         return Q
 
+    # not reshaped
+    def get_helper_J(self):
+        """
+        Returns:
+            vector used in calculation of g
+        """
+        
+        J = np.zeros(self.num_of_qubits)
+        for i in range(1, self.n):
+            J+= self.get_z_source(i)
+        return J
+    
+    # not reshaped
+    def get_helper_K(self):
+        """
+        Returns:
+            vector used in calculation of g
+        """
+        K = np.zeros(self.num_of_qubits)
+        for i in range(1, self.n):
+            K+= self.get_z_target(i)
+        return K
 
+    # not reshaped
     def get_g(self):
         """
         Returns:
@@ -148,6 +171,13 @@ class VRPQAOA:
         contribution from individual nodes
 
         """
+        w_vector = self.get_w_vector()
+        z_source = self.get_z_source(0)
+        z_target = self.get_z_target(0)
+        g = w_vector - 2*self.A*self.k*(z_source + z_target) - 2*self.A*(self.get_helper_J() + self.get_helper_K())
+        return g.T
+    
+
     def get_c(self):
         """
         Returns:
@@ -167,6 +197,12 @@ class VRPQAOA:
 
         J: where J is a matrix to keep track of the interactions
         """
+        J = np.zeros((self.num_of_qubits, self.num_of_qubits))
+        for i in range(self.num_of_qubits):
+            for j in range(self.num_of_qubits):
+                if(i<j):
+                    J[i][j] = -self.get_Q()[i][j]/4
+        return J
 
     def get_h_vector(self):
         """
@@ -309,6 +345,10 @@ if __name__ == "__main__":
     print(vrp.get_w_vector())
     print(vrp.get_Q())
     print(vrp.get_c())  
+    print(vrp.get_helper_J())
+    print(vrp.get_helper_K())
+    print(vrp.get_g())
+    print(vrp.get_J_Matrix())
 
 
 
