@@ -47,7 +47,7 @@ then run the jupyter notebook cell
 - **n**: `4` (Number of points)
 - **k**: `2` (Number of clusters)
 
-- Distance Matrix:
+### Distance Matrix:
 |       | Point 1 | Point 2 | Point 3 | Point 4 |
 |-------|---------|---------|---------|---------|
 | **1** | `0.00`  | `36.84` | `5.06`  | `30.63` |
