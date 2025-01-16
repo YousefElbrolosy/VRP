@@ -60,3 +60,8 @@ Output:
 ![Output](expected_solution.png)
 
 Where the highest probabilities represent the solutions leading to the lowest possible cost, giving cost in this problem of 123.02 while the real optimal cost is 124.871
+
+
+## Reference
+
+[Solving Vehicle Routing Problem Using Quantum Approximate Optimization Algorithm](https://arxiv.org/pdf/2002.01351)
