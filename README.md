@@ -43,7 +43,7 @@ then run the jupyter notebook cell
 ## Examples to output when running
 
 
-### Input Parameters:
+## Input Parameters:
 - **n**: `4` (Number of points)
 - **k**: `2` (Number of clusters)
 
