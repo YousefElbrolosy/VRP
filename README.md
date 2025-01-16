@@ -42,12 +42,19 @@ then run the jupyter notebook cell
 
 ## Examples to output when running
 
-for Input n = 4, k =2 and 
-distance matrix = 
-       [[0.00, 36.84, 5.06, 30.63],
-        [36.84, 0.00, 24.55, 63.22],
-        [5.06, 24.55, 0.00, 15.50],
-        [30.63, 63.22, 15.50, 0.00]]: 
+
+### Input Parameters:
+- **n**: `4` (Number of points)
+- **k**: `2` (Number of clusters)
+
+- Distance Matrix:
+|       | Point 1 | Point 2 | Point 3 | Point 4 |
+|-------|---------|---------|---------|---------|
+| **1** | `0.00`  | `36.84` | `5.06`  | `30.63` |
+| **2** | `36.84` | `0.00`  | `24.55` | `63.22` |
+| **3** | `5.06`  | `24.55` | `0.00`  | `15.50` |
+| **4** | `30.63` | `63.22` | `15.50` | `0.00`  |
+
 
 Output:
 ![Output](expected_solution.png)
